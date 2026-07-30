@@ -1,0 +1,142 @@
+{
+  "info": {
+    "_postman_id": "b1a2c3d4-e5f6-7890-abcd-1234567890ef",
+    "name": "Media Converter REST API",
+    "description": "Postman Collection for Media Converter REST API with Node.js, Express, Multer & FFmpeg.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Get API Status",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            ""
+          ]
+        },
+        "description": "Returns API status and available endpoints."
+      },
+      "response": []
+    },
+    {
+      "name": "Health Check",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/health",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "health"
+          ]
+        },
+        "description": "Health check endpoint returning system status and uptime."
+      },
+      "response": []
+    },
+    {
+      "name": "Convert Media to MP3",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "formdata",
+          "formdata": [
+            {
+              "key": "file",
+              "type": "file",
+              "src": []
+            },
+            {
+              "key": "bitrate",
+              "value": "320",
+              "type": "text",
+              "description": "Optional bitrate: 128, 192, 256, 320 (Default: 320)"
+            }
+          ]
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/convert",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "convert"
+          ]
+        },
+        "description": "Upload a video or audio file (mp4, mov, avi, mkv, webm, mp3, wav, aac, m4a up to 500MB) to convert to MP3."
+      },
+      "response": []
+    },
+    {
+      "name": "Download or Stream MP3 File",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/download/:filename",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "download",
+            ":filename"
+          ],
+          "variable": [
+            {
+              "key": "filename",
+              "value": "sample-converted.mp3",
+              "description": "The converted MP3 filename returned from /api/convert"
+            }
+          ]
+        },
+        "description": "Downloads or streams the converted MP3 file."
+      },
+      "response": []
+    },
+    {
+      "name": "Delete Converted File",
+      "request": {
+        "method": "DELETE",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/file/:filename",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "file",
+            ":filename"
+          ],
+          "variable": [
+            {
+              "key": "filename",
+              "value": "sample-converted.mp3",
+              "description": "The converted MP3 filename to delete"
+            }
+          ]
+        },
+        "description": "Manually deletes a converted file from storage."
+      },
+      "response": []
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:3000",
+      "type": "string"
+    }
+  ]
+}
