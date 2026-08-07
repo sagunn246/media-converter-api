@@ -11,6 +11,7 @@ const logger = require('../utils/logger');
 const ffmpegService = require('../services/ffmpeg.service');
 const { deleteFileAsync } = require('../utils/fileHelpers');
 const FileMetadata = require('../models/fileMetadata.model');
+const { saveHistoryItem } = require('./history.controller');
 
 /**
  * POST /api/convert
@@ -57,7 +58,19 @@ const convertFile = async (req, res, next) => {
       bitrate: `${bitrate}k`
     });
 
-    // 7. Send standardized JSON response
+    // 7. Auto-persist to history (MongoDB)
+    const displayFilename = originalname ? originalname.replace(/\.[^/.]+$/, "") + ".mp3" : outputFilename;
+    await saveHistoryItem({
+      filename: displayFilename,
+      downloadUrl,
+      size: conversionMeta.sizeFormatted,
+      sizeBytes: conversionMeta.sizeBytes,
+      duration: conversionMeta.durationFormatted,
+      durationSeconds: conversionMeta.durationSeconds,
+      bitrate: `${bitrate}k`
+    });
+
+    // 8. Send standardized JSON response
     return res.status(200).json(metadata.toApiResponse());
 
   } catch (error) {

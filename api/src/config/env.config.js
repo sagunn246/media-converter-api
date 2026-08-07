@@ -33,7 +33,9 @@ const env = {
 
   rateLimitWindowMs: parseEnvInt(process.env.RATE_LIMIT_WINDOW_MS, 900000), // 15 mins
   rateLimitMaxGeneral: parseEnvInt(process.env.RATE_LIMIT_MAX_GENERAL, 100),
-  rateLimitMaxConvert: parseEnvInt(process.env.RATE_LIMIT_MAX_CONVERT, 10)
+  rateLimitMaxConvert: parseEnvInt(process.env.RATE_LIMIT_MAX_CONVERT, 10),
+
+  mongodbUri: process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/media-converter'
 };
 
 module.exports = env;

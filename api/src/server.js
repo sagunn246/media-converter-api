@@ -6,6 +6,10 @@ const app = require('./app');
 const env = require('./config/env.config');
 const logger = require('./utils/logger');
 const storageService = require('./services/storage.service');
+const { connectDB } = require('./config/db');
+
+// Connect to MongoDB Database
+connectDB();
 
 // Initialize local storage directories & cleanup services
 storageService.initializeStorageDirectories();

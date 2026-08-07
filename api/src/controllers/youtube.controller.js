@@ -11,6 +11,7 @@ const logger = require('../utils/logger');
 const ytdlService = require('../services/ytdl.service');
 const { deleteFileAsync } = require('../utils/fileHelpers');
 const FileMetadata = require('../models/fileMetadata.model');
+const { saveHistoryItem } = require('./history.controller');
 
 /**
  * GET /api/youtube/info?url=
@@ -85,6 +86,19 @@ const convertYoutubeUrl = async (req, res, next) => {
       videoAuthor: videoInfo.author,
       thumbnail: videoInfo.thumbnail
     };
+
+    // Auto-persist to history (MongoDB)
+    const displayTitle = videoInfo.title ? videoInfo.title.replace(/\.mp3$/i, "") + ".mp3" : outputFilename;
+    await saveHistoryItem({
+      filename: displayTitle,
+      downloadUrl,
+      size: conversionMeta.sizeFormatted,
+      sizeBytes: conversionMeta.sizeBytes,
+      duration: videoInfo.durationFormatted || conversionMeta.durationFormatted,
+      durationSeconds: videoInfo.durationSeconds || conversionMeta.durationSeconds,
+      bitrate: `${bitrate}k`,
+      videoTitle: videoInfo.title
+    });
 
     return res.status(200).json({
       success: true,

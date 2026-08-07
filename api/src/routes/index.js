@@ -10,6 +10,7 @@ const convertRoutes = require('./convert.routes');
 const downloadRoutes = require('./download.routes');
 const fileRoutes = require('./file.routes');
 const youtubeRoutes = require('./youtube.routes');
+const historyRoutes = require('./history.routes');
 
 // Root & Health routes mounted at base '/'
 router.use('/', apiRoutes);
@@ -25,5 +26,8 @@ router.use('/api/download', downloadRoutes);
 
 // File management route
 router.use('/api/file', fileRoutes);
+
+// Conversion history route
+router.use('/api/history', historyRoutes);
 
 module.exports = router;

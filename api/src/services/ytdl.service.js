@@ -61,6 +61,7 @@ const getYoutubeInfo = async (url) => {
       noWarnings: true,
       noCallHome: true,
       noCheckCertificate: true,
+      noPlaylist: true,
       preferFreeFormats: true,
       youtubeSkipDashManifest: true,
       ffmpegLocation: ffmpegBinDir
@@ -128,6 +129,7 @@ const convertYoutubeToMp3 = async (url, outputPath, bitrateKbps = 320) => {
       audioFormat: 'mp3',
       audioQuality: targetBitrateStr,
       output: outputPath,
+      noPlaylist: true,
       ffmpegLocation: ffmpegBinDir,
       noWarnings: true
     });

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import Header from "@/components/Header";
 import DropZone from "@/components/DropZone";
 import AudioPlayer from "@/components/AudioPlayer";
@@ -18,61 +18,33 @@ export default function Home() {
   const [isProcessing, setIsProcessing] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [history, setHistory] = useState<HistoryItem[]>([]);
-  const [isLoaded, setIsLoaded] = useState(false);
 
-  // Load history from localStorage on initial render
-  useEffect(() => {
+  // Fetch conversion history directly from MongoDB API
+  const fetchHistory = useCallback(async () => {
     try {
-      const saved = localStorage.getItem("audiopulse_history");
-      if (saved) {
-        const parsed = JSON.parse(saved);
-        if (Array.isArray(parsed)) {
-          setHistory(parsed);
+      const res = await fetch("/api/backend/api/history");
+      if (res.ok) {
+        const result = await res.json();
+        if (result.success && Array.isArray(result.data)) {
+          setHistory(result.data);
         }
       }
     } catch (e) {
-      console.error("Failed to load history:", e);
-    } finally {
-      setIsLoaded(true);
+      console.warn("Failed to fetch MongoDB history:", e);
     }
   }, []);
 
-  // Save history to localStorage whenever history changes after initial load
   useEffect(() => {
-    if (!isLoaded) return;
-    try {
-      if (history.length > 0) {
-        localStorage.setItem("audiopulse_history", JSON.stringify(history));
-      } else {
-        localStorage.removeItem("audiopulse_history");
-      }
-    } catch (e) {
-      console.error("Failed to sync history to localStorage:", e);
-    }
-  }, [history, isLoaded]);
+    fetchHistory();
+  }, [fetchHistory]);
 
-  const saveToHistory = (item: ConvertedTrack) => {
-    if (!item || (!item.filename && !item.downloadUrl)) return;
-    const newItem: HistoryItem = {
-      filename: item.filename || "Converted Audio",
-      downloadUrl: item.downloadUrl,
-      bitrate: item.bitrate || "320k",
-      size: item.size,
-      duration: item.duration,
-      durationSeconds: item.durationSeconds,
-      createdAt: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-    };
-
-    setHistory((prev) => {
-      const filtered = prev.filter(
-        (h) => h.downloadUrl !== newItem.downloadUrl && h.filename !== newItem.filename
-      );
-      return [newItem, ...filtered].slice(0, 10);
-    });
-  };
-
-  const clearHistory = () => {
+  const clearHistory = async () => {
     setHistory([]);
+    try {
+      await fetch("/api/backend/api/history", { method: "DELETE" });
+    } catch (e) {
+      console.error("Failed to clear MongoDB history:", e);
+    }
   };
 
   const handleTabChange = (tab: Tab) => {
@@ -89,7 +61,7 @@ export default function Home() {
   const handleConvertSuccess = (data: ConvertedTrack) => {
     setIsProcessing(false);
     setActiveTrack(data);
-    saveToHistory(data);
+    fetchHistory();
   };
 
   const handleConvertError = (msg: string) => {
