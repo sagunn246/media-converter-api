@@ -1,0 +1,13 @@
+{
+  "watch": [
+    "src"
+  ],
+  "ext": "js,json,mjs",
+  "ignore": [
+    "uploads/*",
+    "output/*",
+    "*.mp3",
+    "*-player-script.js",
+    ".git"
+  ]
+}

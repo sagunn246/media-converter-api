@@ -1,44 +1,18 @@
 {
-  "name": "media-converter-api",
+  "name": "media-converter-root",
   "version": "1.0.0",
-  "description": "Production-ready REST API for audio/video to MP3 conversion using Node.js, Express, Multer, and FFmpeg",
-  "main": "src/server.js",
+  "private": true,
+  "description": "Production-ready Media Converter application with separated REST API and Next.js Frontend",
   "scripts": {
-    "start": "node src/server.js",
-    "dev": "nodemon src/server.js",
-    "client": "npm --prefix client run dev -- -p 3001"
-  },
-  "keywords": [
-    "nodejs",
-    "express",
-    "ffmpeg",
-    "multer",
-    "audio-converter",
-    "mp3",
-    "rest-api"
-  ],
-  "author": "Antigravity Senior Backend Engineer",
-  "license": "MIT",
-  "dependencies": {
-    "@distube/ytdl-core": "^4.16.12",
-    "@ffmpeg-installer/ffmpeg": "^1.1.0",
-    "@ffprobe-installer/ffprobe": "^1.4.1",
-    "compression": "^1.7.5",
-    "cors": "^2.8.5",
-    "dotenv": "^16.4.7",
-    "express": "^4.21.2",
-    "express-rate-limit": "^7.5.0",
-    "fluent-ffmpeg": "^2.1.3",
-    "helmet": "^8.0.0",
-    "morgan": "^1.10.0",
-    "multer": "^1.4.5-lts.1",
-    "node-cron": "^3.0.3",
-    "uuid": "^11.0.5"
+    "dev": "concurrently \"npm --prefix api run dev\" \"npm --prefix application run dev\"",
+    "dev:api": "npm --prefix api run dev",
+    "dev:app": "npm --prefix application run dev",
+    "start:api": "npm --prefix api run start",
+    "start:app": "npm --prefix application run start",
+    "build:app": "npm --prefix application run build",
+    "build": "npm run build:app"
   },
   "devDependencies": {
-    "nodemon": "^3.1.9"
-  },
-  "engines": {
-    "node": ">=18.0.0"
+    "concurrently": "^9.1.2"
   }
 }
