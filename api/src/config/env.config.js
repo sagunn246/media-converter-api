@@ -13,7 +13,11 @@ const parseEnvInt = (value, defaultValue) => {
   return isNaN(parsed) ? defaultValue : parsed;
 };
 
+const os = require('os');
+
 const port = parseEnvInt(process.env.PORT, 3000);
+
+const defaultTempBase = path.join(os.tmpdir(), 'media-converter-api');
 
 const env = {
   port,
@@ -23,10 +27,10 @@ const env = {
   maxFileSizeMB: parseEnvInt(process.env.MAX_FILE_SIZE_MB, 500),
   uploadDir: process.env.UPLOAD_DIR 
     ? path.resolve(process.env.UPLOAD_DIR) 
-    : path.join(__dirname, '../../uploads'),
+    : path.join(defaultTempBase, 'uploads'),
   outputDir: process.env.OUTPUT_DIR 
     ? path.resolve(process.env.OUTPUT_DIR) 
-    : path.join(__dirname, '../../output'),
+    : path.join(defaultTempBase, 'output'),
 
   fileRetentionHours: parseEnvInt(process.env.FILE_RETENTION_HOURS, 24),
   cleanupCronSchedule: process.env.CLEANUP_CRON_SCHEDULE || '0 * * * *', // Every hour by default

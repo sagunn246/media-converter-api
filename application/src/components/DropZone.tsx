@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef } from "react";
-import { Upload, FileVideo, FileAudio, X, Play, Loader2, Download } from "lucide-react";
+import { Upload, FileVideo, FileAudio, X, Play, Download } from "lucide-react";
 import { ConvertedTrack, ApiResponse } from "@/types";
 
 interface DropZoneProps {

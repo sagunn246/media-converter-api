@@ -1,8 +1,8 @@
 /* eslint-disable @next/next/no-img-element */
 "use client";
 
-import { useState, useEffect } from "react";
-import { Link2, Search, Play, Music, User, Clock, ExternalLink, AlertCircle, RefreshCw, Download, Check } from "lucide-react";
+import { useState, useEffect, useCallback } from "react";
+import { Link2, Play, Music, User, Clock, ExternalLink, AlertCircle, RefreshCw, Download } from "lucide-react";
 import { ConvertedTrack, VideoInfo, ApiResponse } from "@/types";
 
 interface YoutubeConverterProps {
@@ -26,16 +26,6 @@ export default function YoutubeConverter({
   const [successData, setSuccessData] = useState<ConvertedTrack | null>(null);
   const [conversionPhase, setConversionPhase] = useState("");
 
-  // Auto-fetch if URL is pasted
-  useEffect(() => {
-    if (url && isYoutubeUrl(url) && !isFetching && !isConverting && !successData && !videoInfo) {
-      const timeout = setTimeout(() => {
-        fetchVideoInfo();
-      }, 500);
-      return () => clearTimeout(timeout);
-    }
-  }, [url]);
-
   const isYoutubeUrl = (value: string) => {
     const trimmed = value.trim();
     if (!trimmed) return false;
@@ -58,14 +48,7 @@ export default function YoutubeConverter({
     }
   };
 
-  const handleUrlChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setUrl(e.target.value);
-    setInfoError(null);
-    setThumbnailError(false);
-    if (successData) setSuccessData(null);
-  };
-
-  const fetchVideoInfo = async () => {
+  const fetchVideoInfo = useCallback(async () => {
     const cleanUrl = url.trim();
     if (!cleanUrl) return;
     if (!isYoutubeUrl(cleanUrl)) {
@@ -94,7 +77,27 @@ export default function YoutubeConverter({
     } finally {
       setIsFetching(false);
     }
+  }, [url]);
+
+  // Auto-fetch if URL is pasted
+  useEffect(() => {
+    if (url && isYoutubeUrl(url) && !isFetching && !isConverting && !successData && !videoInfo) {
+      const timeout = setTimeout(() => {
+        fetchVideoInfo();
+      }, 500);
+      return () => clearTimeout(timeout);
+    }
+  }, [url, fetchVideoInfo, isFetching, isConverting, successData, videoInfo]);
+
+
+  const handleUrlChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setUrl(e.target.value);
+    setInfoError(null);
+    setThumbnailError(false);
+    if (successData) setSuccessData(null);
   };
+
+
 
   const handleConvert = async () => {
     if (!url || !videoInfo) return;
