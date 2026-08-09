@@ -66,6 +66,8 @@ const getYoutubeInfo = async (url) => {
       noPlaylist: true,
       preferFreeFormats: true,
       youtubeSkipDashManifest: true,
+      extractorArgs: 'youtube:player_client=android,web',
+      userAgent: 'Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Mobile Safari/537.36',
       ffmpegLocation: ffmpegBinDir
     });
 
@@ -152,6 +154,8 @@ const convertYoutubeToMp3 = async (url, outputPath, bitrateKbps = 320) => {
       audioQuality: targetBitrateStr,
       output: outputPath,
       noPlaylist: true,
+      extractorArgs: 'youtube:player_client=android,web',
+      userAgent: 'Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Mobile Safari/537.36',
       ffmpegLocation: ffmpegBinDir,
       noWarnings: true
     });
