@@ -1,22 +1,18 @@
-/* eslint-disable react-hooks/set-state-in-effect */
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
 import Header from "@/components/Header";
 import DropZone from "@/components/DropZone";
-
 import YoutubeConverter from "@/components/YoutubeConverter";
 import HistoryList from "@/components/HistoryList";
-import { AlertCircle, Headphones, Upload, Link2 } from "lucide-react";
+import { AlertCircle, Upload, Link2 } from "lucide-react";
 import clsx from "clsx";
-import { ConvertedTrack, HistoryItem } from "@/types";
+import { HistoryItem } from "@/types";
 
 type Tab = "youtube" | "file";
 
 export default function Home() {
   const [activeTab, setActiveTab] = useState<Tab>("youtube");
-
-  const [isProcessing, setIsProcessing] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [history, setHistory] = useState<HistoryItem[]>([]);
 
@@ -66,107 +62,92 @@ export default function Home() {
   };
 
   const handleConvertStart = () => {
-    setIsProcessing(true);
     setErrorMessage(null);
   };
 
   const handleConvertSuccess = () => {
-    setIsProcessing(false);
     fetchHistory();
   };
 
   const handleConvertError = (msg: string) => {
-    setIsProcessing(false);
     setErrorMessage(msg);
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-[#090a0f] text-zinc-100 selection:bg-indigo-500 selection:text-white">
+    <div className="min-h-screen flex flex-col relative">
+      {/* Animated Background Glow */}
+      <div className="bg-glow-container">
+        <div className="bg-glow"></div>
+        <div className="bg-glow-2"></div>
+      </div>
+
       <Header />
 
-      <main className="flex-1 max-w-4xl mx-auto w-full px-4 sm:px-6 py-8 space-y-6">
+      <main className="flex-1 max-w-3xl mx-auto w-full px-4 sm:px-6 py-12 space-y-8 relative z-10 animate-enter">
 
         {/* Header Title */}
-        <div className="text-center space-y-1.5 max-w-xl mx-auto py-2">
-          <h1 className="text-2xl sm:text-3xl font-bold text-zinc-100 tracking-tight">
+        <div className="text-center space-y-2 max-w-xl mx-auto py-2">
+          <h1 className="text-3xl sm:text-4xl font-bold text-zinc-100 tracking-tight">
             Audio & Video MP3 Converter
           </h1>
-          <p className="text-zinc-400 text-xs sm:text-sm">
-            Convert YouTube videos or local media files to 320kbps MP3 audio directly.
+          <p className="text-zinc-400 text-sm sm:text-base font-medium">
+            Convert videos and local media into high-quality MP3 audio.
           </p>
         </div>
 
         {/* Error Alert / Info Alert */}
         {errorMessage && (
-          <div className={clsx("border p-3 rounded-lg flex items-center justify-between text-xs", 
+          <div className={clsx("border p-3.5 rounded-xl flex items-center justify-between text-sm shadow-sm animate-enter", 
             errorMessage.includes("background") || errorMessage.includes("longer than expected") 
-              ? "bg-blue-500/10 border-blue-500/20 text-blue-300" 
-              : "bg-rose-500/10 border-rose-500/20 text-rose-300"
+              ? "bg-indigo-500/10 border-indigo-500/20 text-indigo-200" 
+              : "bg-rose-500/10 border-rose-500/20 text-rose-200"
           )}>
-            <div className="flex items-center space-x-2">
-              <AlertCircle className={clsx("w-4 h-4 shrink-0", 
+            <div className="flex items-center space-x-2.5">
+              <AlertCircle className={clsx("w-4.5 h-4.5 shrink-0", 
                 errorMessage.includes("background") || errorMessage.includes("longer than expected") 
-                  ? "text-blue-400" 
+                  ? "text-indigo-400" 
                   : "text-rose-400"
               )} />
               <span>{errorMessage}</span>
             </div>
-            <button onClick={() => setErrorMessage(null)} className="text-xs hover:underline font-medium cursor-pointer opacity-80 hover:opacity-100">
+            <button onClick={() => setErrorMessage(null)} className="text-xs hover:underline font-medium cursor-pointer opacity-80 hover:opacity-100 transition-opacity">
               Dismiss
             </button>
           </div>
         )}
 
-        {/* Processing Card */}
-        {isProcessing && (
-          <div className="card-panel p-6 rounded-xl text-center space-y-3 border border-zinc-800">
-            <div className="w-10 h-10 rounded-lg bg-indigo-600/20 text-indigo-400 mx-auto flex items-center justify-center border border-indigo-500/20">
-              <Headphones className="w-5 h-5 animate-pulse" />
-            </div>
-            <div className="space-y-1">
-              <h3 className="text-sm font-semibold text-zinc-200">
-                {activeTab === "youtube" ? "Streaming & Converting YouTube Audio..." : "Converting Media to MP3..."}
-              </h3>
-              <p className="text-xs text-zinc-400">Processing audio extraction with FFmpeg. Please wait.</p>
-            </div>
-            <div className="w-full max-w-xs mx-auto h-1.5 bg-zinc-800 rounded-full overflow-hidden">
-              <div className="h-full bg-indigo-500 w-3/4 animate-pulse rounded-full" />
-            </div>
-          </div>
-        )}
-
         {/* Main Card Container */}
-        <div className="card-panel rounded-xl border border-zinc-800 overflow-hidden">
+        <div className="card-panel rounded-2xl overflow-hidden relative">
           {/* Tabs */}
-          <div className="flex border-b border-zinc-800/80 bg-zinc-950/40">
+          <div className="flex relative bg-zinc-950/50 p-1.5 m-2.5 rounded-xl border border-zinc-800/60 shadow-inner">
             <button
               onClick={() => handleTabChange("youtube")}
               className={clsx(
-                "flex-1 flex items-center justify-center space-x-2 py-3 text-xs font-semibold transition-colors cursor-pointer",
+                "flex-1 flex items-center justify-center space-x-2 py-2.5 text-sm font-semibold rounded-lg transition-all duration-300 cursor-pointer",
                 activeTab === "youtube"
-                  ? "bg-zinc-900 text-zinc-100 border-b-2 border-indigo-500"
+                  ? "bg-zinc-800 text-zinc-100 shadow-sm"
                   : "text-zinc-400 hover:text-zinc-200 hover:bg-zinc-900/50"
               )}
             >
-              <Link2 className="w-3.5 h-3.5" />
+              <Link2 className="w-4 h-4" />
               <span>YouTube Link</span>
             </button>
             <button
               onClick={() => handleTabChange("file")}
               className={clsx(
-                "flex-1 flex items-center justify-center space-x-2 py-3 text-xs font-semibold transition-colors cursor-pointer",
+                "flex-1 flex items-center justify-center space-x-2 py-2.5 text-sm font-semibold rounded-lg transition-all duration-300 cursor-pointer",
                 activeTab === "file"
-                  ? "bg-zinc-900 text-zinc-100 border-b-2 border-indigo-500"
+                  ? "bg-zinc-800 text-zinc-100 shadow-sm"
                   : "text-zinc-400 hover:text-zinc-200 hover:bg-zinc-900/50"
               )}
             >
-              <Upload className="w-3.5 h-3.5" />
+              <Upload className="w-4 h-4" />
               <span>Upload Local File</span>
             </button>
           </div>
 
           {/* Form Content */}
-          <div className="p-5">
+          <div className="p-6">
             {activeTab === "youtube" ? (
               <YoutubeConverter
                 onConvertStart={handleConvertStart}
