@@ -32,8 +32,11 @@ const getCookiesFilePath = () => {
   const cookiesContent = process.env.YOUTUBE_COOKIES;
   if (!cookiesContent || !cookiesContent.trim()) return null;
   try {
+    // Render stores multiline env vars with literal \n — replace with real newlines
+    const normalized = cookiesContent.replace(/\\n/g, '\n').trim();
     const cookiesPath = path.join(os.tmpdir(), 'yt-cookies.txt');
-    fs.writeFileSync(cookiesPath, cookiesContent.trim(), 'utf8');
+    fs.writeFileSync(cookiesPath, normalized + '\n', 'utf8');
+    logger.info(`YouTube cookies written to: ${cookiesPath} (${normalized.split('\n').length} lines)`);
     return cookiesPath;
   } catch (err) {
     logger.warn('Could not write YouTube cookies to temp file:', err.message);

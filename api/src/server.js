@@ -7,6 +7,7 @@ const env = require('./config/env.config');
 const logger = require('./utils/logger');
 const storageService = require('./services/storage.service');
 const { connectDB } = require('./config/db');
+const { exec } = require('child_process');
 
 // Connect to MongoDB Database
 connectDB();
@@ -15,6 +16,15 @@ connectDB();
 storageService.initializeStorageDirectories();
 storageService.cleanupStaleUploadFiles();
 storageService.initScheduledCleanup();
+
+// Auto-update yt-dlp binary on startup (ensures latest bot-bypass patches)
+try {
+  const youtubedl = require('youtube-dl-exec');
+  youtubedl.exec('--update-to', ['yt-dlp@latest']).catch(() => {});
+  logger.info('yt-dlp auto-update initiated');
+} catch (e) {
+  // Non-fatal: update fails silently
+}
 
 // Start HTTP Server
 const server = app.listen(env.port, '0.0.0.0', () => {
