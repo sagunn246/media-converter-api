@@ -199,7 +199,7 @@ export default function DropZone({ onConvertStart, onConvertSuccess, onConvertEr
                 e.stopPropagation();
                 removeSelectedFile();
               }}
-              className="p-1.5 rounded-md hover:bg-zinc-800 text-zinc-500 hover:text-zinc-300 transition-colors"
+              className="p-1.5 rounded-md hover:bg-zinc-800 text-zinc-500 hover:text-zinc-300 transition-colors cursor-pointer"
               title="Remove"
             >
               <X className="w-4 h-4" />
@@ -220,7 +220,7 @@ export default function DropZone({ onConvertStart, onConvertSuccess, onConvertEr
                   type="button"
                   disabled={isSubmitting}
                   onClick={() => setBitrate(q)}
-                  className={`px-3 py-1 rounded-md text-xs font-mono font-medium transition-colors ${
+                  className={`px-3 py-1 rounded-md text-xs font-mono font-medium transition-colors cursor-pointer ${
                     bitrate === q
                       ? "bg-indigo-600 text-white"
                       : "bg-zinc-900 text-zinc-400 hover:text-zinc-200 border border-zinc-800"
@@ -236,7 +236,7 @@ export default function DropZone({ onConvertStart, onConvertSuccess, onConvertEr
             type="button"
             disabled={isSubmitting}
             onClick={handleSubmit}
-            className="w-full py-3 rounded-lg brand-btn font-semibold text-xs transition-colors flex items-center justify-center space-x-2 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full py-3 rounded-lg brand-btn font-semibold text-xs transition-colors cursor-pointer flex items-center justify-center space-x-2 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {isSubmitting ? (
               <>

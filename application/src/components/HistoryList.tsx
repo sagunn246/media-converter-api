@@ -40,7 +40,7 @@ export default function HistoryList({ items, onSelectTrack, onClearHistory }: Hi
         </div>
         <button
           onClick={onClearHistory}
-          className="text-xs text-zinc-500 hover:text-rose-400 flex items-center space-x-1 transition-colors"
+          className="text-xs text-zinc-500 hover:text-rose-400 flex items-center space-x-1 transition-colors cursor-pointer"
         >
           <Trash2 className="w-3.5 h-3.5" />
           <span>Clear</span>
@@ -72,7 +72,7 @@ export default function HistoryList({ items, onSelectTrack, onClearHistory }: Hi
             <div className="flex items-center space-x-1.5 shrink-0">
               <button
                 onClick={() => onSelectTrack(item)}
-                className="p-1.5 rounded-md bg-zinc-800 hover:bg-indigo-600 text-zinc-400 hover:text-white transition-colors"
+                className="p-1.5 rounded-md bg-zinc-800 hover:bg-indigo-600 text-zinc-400 hover:text-white transition-colors cursor-pointer"
                 title="Preview"
               >
                 <Play className="w-3.5 h-3.5 fill-current" />
@@ -80,7 +80,7 @@ export default function HistoryList({ items, onSelectTrack, onClearHistory }: Hi
               <a
                 href={getProxiedUrl(item.downloadUrl, true)}
                 download={item.filename}
-                className="p-1.5 rounded-md bg-zinc-800 hover:bg-zinc-700 text-zinc-400 hover:text-white transition-colors"
+                className="p-1.5 rounded-md bg-zinc-800 hover:bg-zinc-700 text-zinc-400 hover:text-white transition-colors cursor-pointer"
                 title="Download MP3"
               >
                 <Download className="w-3.5 h-3.5" />

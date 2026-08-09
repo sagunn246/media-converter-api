@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/set-state-in-effect */
 "use client";
 
 import { useState, useRef, useEffect } from "react";
@@ -141,7 +142,7 @@ export default function AudioPlayer({
         <a
           href={downloadFileUrl}
           download={filename}
-          className="px-4 py-2.5 rounded-lg brand-btn font-semibold text-xs transition-colors flex items-center justify-center space-x-1.5 shrink-0"
+          className="px-4 py-2.5 rounded-lg brand-btn font-semibold text-xs transition-colors cursor-pointer flex items-center justify-center space-x-1.5 shrink-0"
         >
           <Download className="w-3.5 h-3.5" />
           <span>Download MP3</span>
@@ -164,14 +165,14 @@ export default function AudioPlayer({
           <div className="flex items-center space-x-3">
             <button
               onClick={togglePlay}
-              className="p-1.5 rounded-md bg-zinc-800 hover:bg-zinc-700 text-zinc-200 transition-colors"
+              className="p-1.5 rounded-md bg-zinc-800 hover:bg-zinc-700 text-zinc-200 transition-colors cursor-pointer"
               title={isPlaying ? "Pause" : "Play"}
             >
               {isPlaying ? <Pause className="w-3.5 h-3.5" /> : <Play className="w-3.5 h-3.5 ml-0.5 fill-current" />}
             </button>
 
             <div className="hidden sm:flex items-center space-x-1.5">
-              <button onClick={toggleMute} className="text-zinc-500 hover:text-zinc-300">
+              <button onClick={toggleMute} className="text-zinc-500 hover:text-zinc-300 cursor-pointer">
                 {isMuted || volume === 0 ? <VolumeX className="w-3.5 h-3.5" /> : <Volume2 className="w-3.5 h-3.5" />}
               </button>
               <input

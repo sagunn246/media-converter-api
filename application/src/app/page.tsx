@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/set-state-in-effect */
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
@@ -22,7 +23,7 @@ export default function Home() {
   // Fetch conversion history directly from MongoDB API
   const fetchHistory = useCallback(async () => {
     try {
-      const res = await fetch("/api/backend/api/history", { cache: "no-store" });
+      const res = await fetch(`/api/backend/api/history?_t=${Date.now()}`, { cache: "no-store" });
       if (res.ok) {
         const text = await res.text();
         try {

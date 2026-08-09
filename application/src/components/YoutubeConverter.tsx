@@ -150,7 +150,7 @@ export default function YoutubeConverter({
             type="button"
             onClick={fetchVideoInfo}
             disabled={!url.trim() || isFetching || isConverting}
-            className="px-4 py-2.5 rounded-lg bg-zinc-800 hover:bg-zinc-700 text-zinc-200 border border-zinc-700 text-xs font-medium transition-colors disabled:opacity-50 flex items-center space-x-1.5 shrink-0"
+            className="px-4 py-2.5 rounded-lg bg-zinc-800 hover:bg-zinc-700 text-zinc-200 border border-zinc-700 text-xs font-medium transition-colors cursor-pointer disabled:opacity-50 flex items-center space-x-1.5 shrink-0"
           >
             {isFetching ? (
               <Loader2 className="w-3.5 h-3.5 animate-spin" />
@@ -203,7 +203,7 @@ export default function YoutubeConverter({
                 href={url}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-center space-x-1 text-indigo-400 hover:underline"
+                className="flex items-center space-x-1 text-indigo-400 hover:underline cursor-pointer"
               >
                 <ExternalLink className="w-3 h-3" />
                 <span>YouTube</span>
@@ -225,7 +225,7 @@ export default function YoutubeConverter({
                   type="button"
                   disabled={isConverting}
                   onClick={() => setBitrate(q)}
-                  className={`px-3 py-1 rounded-md text-xs font-mono font-medium transition-colors ${
+                  className={`px-3 py-1 rounded-md text-xs font-mono font-medium transition-colors cursor-pointer ${
                     bitrate === q
                       ? "bg-indigo-600 text-white"
                       : "bg-zinc-900 text-zinc-400 hover:text-zinc-200 border border-zinc-800"
@@ -241,7 +241,7 @@ export default function YoutubeConverter({
             type="button"
             disabled={isConverting}
             onClick={handleConvert}
-            className="w-full py-3 rounded-lg brand-btn font-semibold text-xs transition-colors flex items-center justify-center space-x-2 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full py-3 rounded-lg brand-btn font-semibold text-xs transition-colors cursor-pointer flex items-center justify-center space-x-2 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {isConverting ? (
               <>
