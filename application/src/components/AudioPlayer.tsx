@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { Play, Pause, Download, Volume2, VolumeX, Music, Disc3, Sparkles } from "lucide-react";
+import { Play, Pause, Download, Volume2, VolumeX, Music } from "lucide-react";
 
 interface AudioPlayerProps {
   filename: string;
@@ -34,7 +34,7 @@ export default function AudioPlayer({
       try {
         const parsed = new URL(url);
         finalUrl = `/api/backend${parsed.pathname}`;
-      } catch (e) {
+      } catch {
         finalUrl = url;
       }
     }
@@ -43,7 +43,6 @@ export default function AudioPlayer({
 
   const mediaUrl = getProxiedUrl(downloadUrl);
   const downloadFileUrl = getProxiedUrl(downloadUrl, true);
-
 
   useEffect(() => {
     setCurrentTime(0);
@@ -116,90 +115,64 @@ export default function AudioPlayer({
   };
 
   return (
-    <div className="glass-panel p-6 rounded-2xl border border-violet-500/30 relative overflow-hidden shadow-2xl">
-      {/* Background glow */}
-      <div className="absolute -top-24 -right-24 w-48 h-48 bg-violet-600/20 rounded-full blur-3xl pointer-events-none"></div>
-
+    <div className="card-panel p-5 rounded-xl border border-zinc-800 space-y-4">
       <audio ref={audioRef} src={mediaUrl} preload="metadata" />
 
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
-        {/* Track Metadata */}
-        <div className="flex items-center space-x-4">
-          <div className="relative group">
-            <div className={`w-14 h-14 rounded-xl flex items-center justify-center glow-gradient shadow-lg transition-transform ${isPlaying ? "scale-105" : ""}`}>
-              {isPlaying ? (
-                <Disc3 className="w-7 h-7 text-white animate-spin" style={{ animationDuration: "3s" }} />
-              ) : (
-                <Music className="w-7 h-7 text-white" />
-              )}
-            </div>
-            {/* Wave animation bars when playing */}
-            {isPlaying && (
-              <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 flex items-end space-x-0.5 px-1 py-0.5 bg-slate-950/80 rounded-full">
-                <div className="w-1 bg-violet-400 rounded-full wave-bar-1"></div>
-                <div className="w-1 bg-fuchsia-400 rounded-full wave-bar-2"></div>
-                <div className="w-1 bg-pink-400 rounded-full wave-bar-3"></div>
-                <div className="w-1 bg-indigo-400 rounded-full wave-bar-4"></div>
-              </div>
-            )}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        {/* Track Details */}
+        <div className="flex items-center space-x-3 min-w-0">
+          <div className="w-10 h-10 rounded-lg bg-indigo-600/20 text-indigo-400 flex items-center justify-center shrink-0 border border-indigo-500/20">
+            <Music className="w-5 h-5" />
           </div>
 
-          <div>
-            <h4 className="font-semibold text-white text-base truncate max-w-xs sm:max-w-md">
+          <div className="min-w-0">
+            <h4 className="font-semibold text-zinc-100 text-xs truncate">
               {filename}
             </h4>
-            <div className="flex items-center space-x-2 mt-1">
-              <span className="text-xs px-2 py-0.5 rounded-full bg-violet-500/20 text-violet-300 font-mono font-medium border border-violet-500/30">
-                {bitrate} MP3
-              </span>
-              {size && <span className="text-xs text-slate-400 font-mono">{size}</span>}
-              {duration && <span className="text-xs text-slate-400 font-mono">• {duration}</span>}
+            <div className="flex items-center space-x-2 mt-0.5 text-[11px] text-zinc-400 font-mono">
+              <span className="text-indigo-400 font-medium">{bitrate} MP3</span>
+              {size && <span>• {size}</span>}
+              {duration && <span>• {duration}</span>}
             </div>
           </div>
         </div>
 
-        {/* Action Controls */}
-        <div className="flex items-center space-x-3">
-          <a
-            href={downloadFileUrl}
-            download={filename}
-            className="flex-1 sm:flex-none flex items-center justify-center space-x-2 px-5 py-2.5 rounded-xl glow-gradient font-semibold text-white shadow-lg shadow-violet-600/30 hover:opacity-95 transition-all hover:scale-[1.02] active:scale-95"
-          >
-            <Download className="w-4 h-4" />
-            <span>Download MP3</span>
-          </a>
-        </div>
+        {/* Primary Download Action */}
+        <a
+          href={downloadFileUrl}
+          download={filename}
+          className="px-4 py-2.5 rounded-lg brand-btn font-semibold text-xs transition-colors flex items-center justify-center space-x-1.5 shrink-0"
+        >
+          <Download className="w-3.5 h-3.5" />
+          <span>Download MP3</span>
+        </a>
       </div>
 
-      {/* Seek Timeline */}
-      <div className="mt-6 space-y-2">
-        <div className="relative">
-          <input
-            type="range"
-            min={0}
-            max={totalDuration || 100}
-            value={currentTime}
-            onChange={handleSeek}
-            className="w-full h-2 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-violet-500 hover:accent-violet-400 transition-all"
-          />
-        </div>
+      {/* Progress & Controls */}
+      <div className="space-y-2 pt-1 border-t border-zinc-800/40">
+        <input
+          type="range"
+          min={0}
+          max={totalDuration || 100}
+          value={currentTime}
+          onChange={handleSeek}
+          className="w-full h-1.5 bg-zinc-800 rounded-lg appearance-none cursor-pointer accent-indigo-500 hover:accent-indigo-400"
+        />
 
-        <div className="flex justify-between items-center text-xs font-mono text-slate-400">
+        <div className="flex justify-between items-center text-[11px] font-mono text-zinc-400">
           <span>{formatTime(currentTime)}</span>
           <div className="flex items-center space-x-3">
-            {/* Play/Pause control */}
             <button
               onClick={togglePlay}
-              className="p-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-white transition-colors"
+              className="p-1.5 rounded-md bg-zinc-800 hover:bg-zinc-700 text-zinc-200 transition-colors"
               title={isPlaying ? "Pause" : "Play"}
             >
-              {isPlaying ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4 ml-0.5" />}
+              {isPlaying ? <Pause className="w-3.5 h-3.5" /> : <Play className="w-3.5 h-3.5 ml-0.5 fill-current" />}
             </button>
 
-            {/* Volume control */}
-            <div className="hidden sm:flex items-center space-x-2">
-              <button onClick={toggleMute} className="text-slate-400 hover:text-white transition-colors">
-                {isMuted || volume === 0 ? <VolumeX className="w-4 h-4" /> : <Volume2 className="w-4 h-4" />}
+            <div className="hidden sm:flex items-center space-x-1.5">
+              <button onClick={toggleMute} className="text-zinc-500 hover:text-zinc-300">
+                {isMuted || volume === 0 ? <VolumeX className="w-3.5 h-3.5" /> : <Volume2 className="w-3.5 h-3.5" />}
               </button>
               <input
                 type="range"
@@ -208,7 +181,7 @@ export default function AudioPlayer({
                 step={0.05}
                 value={isMuted ? 0 : volume}
                 onChange={handleVolumeChange}
-                className="w-16 h-1 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-slate-400"
+                className="w-14 h-1 bg-zinc-800 rounded-lg appearance-none cursor-pointer accent-zinc-400"
               />
             </div>
           </div>

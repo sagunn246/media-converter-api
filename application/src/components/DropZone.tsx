@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef } from "react";
-import { Upload, FileVideo, FileAudio, Sparkles, X, SlidersHorizontal } from "lucide-react";
+import { Upload, FileVideo, FileAudio, X, Play, Loader2 } from "lucide-react";
 import { ConvertedTrack, ApiResponse } from "@/types";
 
 interface DropZoneProps {
@@ -21,11 +21,14 @@ export default function DropZone({ onConvertStart, onConvertSuccess, onConvertEr
 
   const safeParseResponse = async (response: Response): Promise<ApiResponse<ConvertedTrack>> => {
     const text = await response.text();
+    if (!text || !text.trim()) {
+      return { success: false, error: `Empty response received from server (${response.status}).` };
+    }
     try {
       return JSON.parse(text);
     } catch {
       if (!response.ok) {
-        return { success: false, error: `Server error (${response.status}: ${response.statusText || 'Error'}). Please try again.` };
+        return { success: false, error: `Server error (${response.status}). Please try again.` };
       }
       return { success: false, error: "Invalid response format received from server." };
     }
@@ -47,14 +50,14 @@ export default function DropZone({ onConvertStart, onConvertSuccess, onConvertEr
   const validateAndSetFile = (file: File) => {
     const ext = "." + (file.name.split(".").pop()?.toLowerCase() || "");
     if (!allowedFormats.includes(ext)) {
-      onConvertError(`Unsupported file format (${ext}). Supported formats: ${allowedFormats.join(", ")}`);
+      onConvertError(`Unsupported format (${ext}). Allowed: ${allowedFormats.join(", ")}`);
       if (fileInputRef.current) fileInputRef.current.value = "";
       return;
     }
 
     const maxSizeMB = 500;
     if (file.size > maxSizeMB * 1024 * 1024) {
-      onConvertError(`File size exceeds maximum limit of ${maxSizeMB} MB.`);
+      onConvertError(`File exceeds ${maxSizeMB} MB limit.`);
       if (fileInputRef.current) fileInputRef.current.value = "";
       return;
     }
@@ -108,11 +111,11 @@ export default function DropZone({ onConvertStart, onConvertSuccess, onConvertEr
           bitrate: `${bitrate}k`,
         });
       } else {
-        const errorMsg = result.error || result.message || "Failed to convert file. Please try again.";
+        const errorMsg = result.error || result.message || "Failed to convert file.";
         onConvertError(errorMsg);
       }
     } catch (err: unknown) {
-      const errorMsg = err instanceof Error ? err.message : "Network error while connecting to Media Converter API.";
+      const errorMsg = err instanceof Error ? err.message : "Network error during conversion.";
       onConvertError(errorMsg);
     } finally {
       setIsSubmitting(false);
@@ -120,27 +123,27 @@ export default function DropZone({ onConvertStart, onConvertSuccess, onConvertEr
   };
 
   const formatFileSize = (bytes: number) => {
-    if (bytes === 0) return "0 Bytes";
+    if (bytes === 0) return "0 B";
     const k = 1024;
-    const sizes = ["Bytes", "KB", "MB", "GB"];
+    const sizes = ["B", "KB", "MB", "GB"];
     const i = Math.floor(Math.log(bytes) / Math.log(k));
-    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + " " + sizes[i];
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + " " + sizes[i];
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-5">
       {/* Drop Zone Container */}
       <div
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
         onDrop={handleDrop}
         onClick={() => fileInputRef.current?.click()}
-        className={`relative border-2 border-dashed rounded-3xl p-8 text-center transition-all cursor-pointer ${
+        className={`border-2 border-dashed rounded-xl p-6 text-center transition-colors cursor-pointer ${
           isDragging
-            ? "border-violet-400 bg-violet-500/10 scale-[1.01]"
+            ? "border-indigo-500 bg-indigo-500/10"
             : selectedFile
-            ? "border-emerald-500/50 bg-slate-900/60 hover:border-emerald-400"
-            : "border-slate-800 hover:border-violet-500/50 bg-slate-900/40 hover:bg-slate-900/60"
+            ? "border-emerald-500/40 bg-zinc-900/80"
+            : "border-zinc-800 hover:border-zinc-700 bg-zinc-900/40 hover:bg-zinc-900/70"
         }`}
       >
         <input
@@ -153,39 +156,38 @@ export default function DropZone({ onConvertStart, onConvertSuccess, onConvertEr
         />
 
         {!selectedFile ? (
-          <div className="space-y-4 py-6">
-            <div className="w-16 h-16 rounded-2xl glow-gradient mx-auto flex items-center justify-center shadow-xl shadow-violet-500/20">
-              <Upload className="w-8 h-8 text-white animate-bounce" />
+          <div className="space-y-2 py-4">
+            <div className="w-10 h-10 rounded-lg bg-zinc-800 text-zinc-400 mx-auto flex items-center justify-center border border-zinc-700/60">
+              <Upload className="w-5 h-5" />
             </div>
             <div>
-              <h3 className="text-lg font-bold text-white">
-                Drag & Drop Video or Audio file here
-              </h3>
-              <p className="text-sm text-slate-400 mt-1">
-                or <span className="text-violet-400 font-semibold underline underline-offset-4">browse from device</span>
+              <p className="text-xs font-medium text-zinc-200">
+                Drag and drop media file here
+              </p>
+              <p className="text-[11px] text-zinc-400 mt-0.5">
+                or <span className="text-indigo-400 font-medium hover:underline">choose file from computer</span>
               </p>
             </div>
-            <div className="inline-flex items-center space-x-2 text-xs text-slate-400 bg-slate-950/60 px-4 py-1.5 rounded-full border border-slate-800">
-              <span>Supported Formats: MP4, MOV, WEBM, MKV, AVI, WAV, MP3</span>
-              <span>• Max 500MB</span>
-            </div>
+            <p className="text-[10px] text-zinc-400 font-mono">
+              MP4, MOV, WEBM, MKV, AVI, WAV, MP3 • Max 500MB
+            </p>
           </div>
         ) : (
-          <div className="flex flex-col sm:flex-row items-center justify-between gap-4 p-2">
-            <div className="flex items-center space-x-4">
-              <div className="w-12 h-12 rounded-xl bg-violet-500/20 text-violet-400 flex items-center justify-center border border-violet-500/30">
+          <div className="flex items-center justify-between p-1">
+            <div className="flex items-center space-x-3 text-left">
+              <div className="w-9 h-9 rounded-lg bg-indigo-600/20 text-indigo-400 flex items-center justify-center shrink-0 border border-indigo-500/20">
                 {selectedFile.type.startsWith("video") ? (
-                  <FileVideo className="w-6 h-6" />
+                  <FileVideo className="w-4 h-4" />
                 ) : (
-                  <FileAudio className="w-6 h-6" />
+                  <FileAudio className="w-4 h-4" />
                 )}
               </div>
-              <div className="text-left">
-                <p className="font-semibold text-white truncate max-w-xs sm:max-w-md">
+              <div className="min-w-0">
+                <p className="font-semibold text-zinc-100 text-xs truncate max-w-xs sm:max-w-md">
                   {selectedFile.name}
                 </p>
-                <p className="text-xs text-slate-400 font-mono mt-0.5">
-                  {formatFileSize(selectedFile.size)} • Click card to change file
+                <p className="text-[11px] text-zinc-400 font-mono">
+                  {formatFileSize(selectedFile.size)}
                 </p>
               </div>
             </div>
@@ -197,72 +199,54 @@ export default function DropZone({ onConvertStart, onConvertSuccess, onConvertEr
                 e.stopPropagation();
                 removeSelectedFile();
               }}
-              className="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white transition-colors disabled:opacity-50"
-              title="Remove file"
+              className="p-1.5 rounded-md hover:bg-zinc-800 text-zinc-500 hover:text-zinc-300 transition-colors"
+              title="Remove"
             >
-              <X className="w-5 h-5" />
+              <X className="w-4 h-4" />
             </button>
           </div>
         )}
       </div>
 
-      {/* Bitrate & Action Settings */}
+      {/* Quality Picker & Action */}
       {selectedFile && (
-        <div className="glass-panel p-6 rounded-2xl space-y-4 border border-slate-800">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-            <div className="flex items-center space-x-3">
-              <SlidersHorizontal className="w-5 h-5 text-violet-400" />
-              <div>
-                <label className="text-sm font-semibold text-white block">
-                  Select Audio Quality (Bitrate)
-                </label>
-                <span className="text-xs text-slate-400">
-                  Higher bitrates yield richer sound clarity
-                </span>
-              </div>
-            </div>
-
-            {/* Quality Selector Buttons */}
-            <div className="grid grid-cols-4 gap-2">
-              {[
-                { label: "128k", value: "128", tag: "Standard" },
-                { label: "192k", value: "192", tag: "Medium" },
-                { label: "256k", value: "256", tag: "High" },
-                { label: "320k", value: "320", tag: "Ultra HD" },
-              ].map((opt) => (
+        <div className="space-y-4 pt-2 border-t border-zinc-800/60">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-medium text-zinc-300">Bitrate / Quality</span>
+            <div className="flex gap-1.5">
+              {["128", "192", "256", "320"].map((q) => (
                 <button
-                  key={opt.value}
+                  key={q}
                   type="button"
                   disabled={isSubmitting}
-                  onClick={() => setBitrate(opt.value)}
-                  className={`px-3 py-2 rounded-xl text-xs font-semibold flex flex-col items-center transition-all disabled:opacity-50 ${
-                    bitrate === opt.value
-                      ? "bg-violet-600 text-white shadow-lg shadow-violet-600/30 ring-2 ring-violet-400"
-                      : "bg-slate-900 hover:bg-slate-800 text-slate-300 border border-slate-800"
+                  onClick={() => setBitrate(q)}
+                  className={`px-3 py-1 rounded-md text-xs font-mono font-medium transition-colors ${
+                    bitrate === q
+                      ? "bg-indigo-600 text-white"
+                      : "bg-zinc-900 text-zinc-400 hover:text-zinc-200 border border-zinc-800"
                   }`}
                 >
-                  <span className="font-mono text-sm">{opt.label}</span>
-                  <span className="text-[10px] opacity-75 font-normal">{opt.tag}</span>
+                  {q}k
                 </button>
               ))}
             </div>
           </div>
 
-          {/* Convert Trigger Button */}
           <button
+            type="button"
             disabled={isSubmitting}
             onClick={handleSubmit}
-            className="w-full py-4 rounded-xl glow-gradient font-bold text-white shadow-xl shadow-violet-600/25 hover:opacity-95 active:scale-[0.99] transition-all flex items-center justify-center space-x-2 text-base disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full py-3 rounded-lg brand-btn font-semibold text-xs transition-colors flex items-center justify-center space-x-2 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {isSubmitting ? (
               <>
-                <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                <span>Processing & Converting with FFmpeg...</span>
+                <Loader2 className="w-4 h-4 animate-spin" />
+                <span>Processing File...</span>
               </>
             ) : (
               <>
-                <Sparkles className="w-5 h-5" />
-                <span>Convert to {bitrate}k MP3</span>
+                <Play className="w-3.5 h-3.5 fill-current" />
+                <span>Convert & Download ({bitrate}kbps)</span>
               </>
             )}
           </button>
@@ -271,4 +255,3 @@ export default function DropZone({ onConvertStart, onConvertSuccess, onConvertEr
     </div>
   );
 }
-

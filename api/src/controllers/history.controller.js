@@ -23,7 +23,7 @@ const getHistory = async (req, res) => {
       .lean();
 
     const formatted = historyItems.map((item) => ({
-      id: item._id,
+      id: item._id ? item._id.toString() : String(Math.random()),
       filename: item.filename,
       downloadUrl: item.downloadUrl,
       bitrate: item.bitrate,

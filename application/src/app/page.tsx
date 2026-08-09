@@ -6,11 +6,11 @@ import DropZone from "@/components/DropZone";
 import AudioPlayer from "@/components/AudioPlayer";
 import YoutubeConverter from "@/components/YoutubeConverter";
 import HistoryList from "@/components/HistoryList";
-import { Sparkles, Shield, Zap, Music2, AlertCircle, Headphones, CheckCircle2, Upload, Video } from "lucide-react";
+import { AlertCircle, Headphones, Check, Upload, Link2 } from "lucide-react";
 import clsx from "clsx";
 import { ConvertedTrack, HistoryItem } from "@/types";
 
-type Tab = "file" | "youtube";
+type Tab = "youtube" | "file";
 
 export default function Home() {
   const [activeTab, setActiveTab] = useState<Tab>("youtube");
@@ -22,12 +22,19 @@ export default function Home() {
   // Fetch conversion history directly from MongoDB API
   const fetchHistory = useCallback(async () => {
     try {
-      const res = await fetch("/api/backend/api/history");
+      const res = await fetch("/api/backend/api/history", { cache: "no-store" });
       if (res.ok) {
-        const result = await res.json();
-        if (result.success && Array.isArray(result.data)) {
-          setHistory(result.data);
+        const text = await res.text();
+        try {
+          const result = JSON.parse(text);
+          if (result.success && Array.isArray(result.data)) {
+            setHistory(result.data);
+          }
+        } catch (jsonErr) {
+          console.warn("Invalid JSON response from history API:", jsonErr);
         }
+      } else {
+        console.warn("History API returned status:", res.status);
       }
     } catch (e) {
       console.warn("Failed to fetch MongoDB history:", e);
@@ -70,35 +77,29 @@ export default function Home() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-[#090d16] text-slate-100 selection:bg-violet-500 selection:text-white">
+    <div className="min-h-screen flex flex-col bg-[#090a0f] text-zinc-100 selection:bg-indigo-500 selection:text-white">
       <Header />
 
-      <main className="flex-1 max-w-5xl mx-auto w-full px-4 sm:px-6 py-10 space-y-10">
+      <main className="flex-1 max-w-4xl mx-auto w-full px-4 sm:px-6 py-8 space-y-6">
 
-        {/* Hero */}
-        <div className="text-center space-y-4 max-w-3xl mx-auto">
-          <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-violet-500/10 text-violet-400 border border-violet-500/20 text-xs font-semibold">
-            <Sparkles className="w-3.5 h-3.5" />
-            <span>FFmpeg Powered Ultra HD Audio Converter</span>
-          </div>
-          <h1 className="text-4xl sm:text-6xl font-extrabold text-white tracking-tight leading-tight">
-            Convert & Download <br className="hidden sm:inline" />
-            <span className="text-gradient">Studio-Quality MP3</span>
+        {/* Header Title */}
+        <div className="text-center space-y-1.5 max-w-xl mx-auto py-2">
+          <h1 className="text-2xl sm:text-3xl font-bold text-zinc-100 tracking-tight">
+            Audio & Video MP3 Converter
           </h1>
-          <p className="text-slate-400 text-base sm:text-lg max-w-2xl mx-auto">
-            Paste a YouTube link or upload a local file to extract crisp{" "}
-            <strong className="text-slate-200">320kbps MP3</strong> audio in seconds.
+          <p className="text-zinc-400 text-xs sm:text-sm">
+            Convert YouTube videos or local media files to 320kbps MP3 audio directly.
           </p>
         </div>
 
         {/* Error Alert */}
         {errorMessage && (
-          <div className="bg-rose-500/10 border border-rose-500/30 p-4 rounded-2xl flex items-center justify-between text-rose-300 text-sm">
-            <div className="flex items-center space-x-3">
-              <AlertCircle className="w-5 h-5 text-rose-400 shrink-0" />
+          <div className="bg-rose-500/10 border border-rose-500/20 p-3 rounded-lg flex items-center justify-between text-rose-300 text-xs">
+            <div className="flex items-center space-x-2">
+              <AlertCircle className="w-4 h-4 text-rose-400 shrink-0" />
               <span>{errorMessage}</span>
             </div>
-            <button onClick={() => setErrorMessage(null)} className="text-xs text-rose-400 hover:underline font-semibold">
+            <button onClick={() => setErrorMessage(null)} className="text-xs text-rose-400 hover:underline font-medium cursor-pointer">
               Dismiss
             </button>
           </div>
@@ -106,29 +107,28 @@ export default function Home() {
 
         {/* Processing Card */}
         {isProcessing && (
-          <div className="glass-panel p-8 rounded-3xl text-center space-y-4 border border-violet-500/40 relative overflow-hidden">
-            <div className="absolute -top-24 -right-24 w-48 h-48 bg-violet-600/20 rounded-full blur-3xl pointer-events-none" />
-            <div className="w-16 h-16 rounded-2xl glow-gradient mx-auto flex items-center justify-center shadow-2xl shadow-violet-500/40">
-              <Headphones className="w-8 h-8 text-white animate-pulse" />
+          <div className="card-panel p-6 rounded-xl text-center space-y-3 border border-zinc-800">
+            <div className="w-10 h-10 rounded-lg bg-indigo-600/20 text-indigo-400 mx-auto flex items-center justify-center border border-indigo-500/20">
+              <Headphones className="w-5 h-5 animate-pulse" />
             </div>
             <div className="space-y-1">
-              <h3 className="text-xl font-bold text-white">
+              <h3 className="text-sm font-semibold text-zinc-200">
                 {activeTab === "youtube" ? "Streaming & Converting YouTube Audio..." : "Converting Media to MP3..."}
               </h3>
-              <p className="text-sm text-slate-400">Running FFmpeg audio extraction and bitrate encoding. Please wait.</p>
+              <p className="text-xs text-zinc-400">Processing audio extraction with FFmpeg. Please wait.</p>
             </div>
-            <div className="w-full max-w-md mx-auto h-2 bg-slate-800 rounded-full overflow-hidden">
-              <div className="h-full glow-gradient w-3/4 animate-pulse rounded-full" />
+            <div className="w-full max-w-xs mx-auto h-1.5 bg-zinc-800 rounded-full overflow-hidden">
+              <div className="h-full bg-indigo-500 w-3/4 animate-pulse rounded-full" />
             </div>
           </div>
         )}
 
-        {/* Audio Player */}
+        {/* Audio Player Result */}
         {activeTrack && !isProcessing && (
-          <div className="space-y-3">
-            <div className="flex items-center space-x-2 text-xs font-semibold text-emerald-400 uppercase tracking-wider">
-              <CheckCircle2 className="w-4 h-4" />
-              <span>Conversion Ready • Stream & Download</span>
+          <div className="space-y-2">
+            <div className="flex items-center space-x-1.5 text-[11px] font-medium text-emerald-400 uppercase tracking-wider">
+              <Check className="w-3.5 h-3.5" />
+              <span>Conversion Ready</span>
             </div>
             <AudioPlayer
               filename={activeTrack.filename}
@@ -141,38 +141,38 @@ export default function Home() {
           </div>
         )}
 
-        {/* Converter Tabs */}
-        <div className="glass-panel rounded-3xl border border-slate-800 overflow-hidden">
-          {/* Tab Header */}
-          <div className="flex border-b border-slate-800">
+        {/* Main Card Container */}
+        <div className="card-panel rounded-xl border border-zinc-800 overflow-hidden">
+          {/* Tabs */}
+          <div className="flex border-b border-zinc-800/80 bg-zinc-950/40">
             <button
               onClick={() => handleTabChange("youtube")}
               className={clsx(
-                "flex-1 flex items-center justify-center space-x-2 py-4 text-sm font-semibold transition-all",
+                "flex-1 flex items-center justify-center space-x-2 py-3 text-xs font-semibold transition-colors cursor-pointer",
                 activeTab === "youtube"
-                  ? "bg-slate-900/80 text-white border-b-2 border-violet-500"
-                  : "text-slate-400 hover:text-slate-200 hover:bg-slate-900/40"
+                  ? "bg-zinc-900 text-zinc-100 border-b-2 border-indigo-500"
+                  : "text-zinc-400 hover:text-zinc-200 hover:bg-zinc-900/50"
               )}
             >
-              <Video className={clsx("w-4 h-4", activeTab === "youtube" ? "text-red-400" : "")} />
-              <span>YouTube URL</span>
+              <Link2 className="w-3.5 h-3.5" />
+              <span>YouTube Link</span>
             </button>
             <button
               onClick={() => handleTabChange("file")}
               className={clsx(
-                "flex-1 flex items-center justify-center space-x-2 py-4 text-sm font-semibold transition-all",
+                "flex-1 flex items-center justify-center space-x-2 py-3 text-xs font-semibold transition-colors cursor-pointer",
                 activeTab === "file"
-                  ? "bg-slate-900/80 text-white border-b-2 border-violet-500"
-                  : "text-slate-400 hover:text-slate-200 hover:bg-slate-900/40"
+                  ? "bg-zinc-900 text-zinc-100 border-b-2 border-indigo-500"
+                  : "text-zinc-400 hover:text-zinc-200 hover:bg-zinc-900/50"
               )}
             >
-              <Upload className={clsx("w-4 h-4", activeTab === "file" ? "text-violet-400" : "")} />
-              <span>Upload File</span>
+              <Upload className="w-3.5 h-3.5" />
+              <span>Upload Local File</span>
             </button>
           </div>
 
-          {/* Tab Content */}
-          <div className="p-6">
+          {/* Form Content */}
+          <div className="p-5">
             {activeTab === "youtube" ? (
               <YoutubeConverter
                 onConvertStart={handleConvertStart}
@@ -189,31 +189,6 @@ export default function Home() {
           </div>
         </div>
 
-        {/* Feature Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div className="glass-panel p-6 rounded-2xl border border-slate-800 space-y-2">
-            <div className="w-10 h-10 rounded-xl bg-violet-500/10 text-violet-400 flex items-center justify-center">
-              <Zap className="w-5 h-5" />
-            </div>
-            <h4 className="font-bold text-white text-base">Lightning Fast</h4>
-            <p className="text-xs text-slate-400">Powered by native FFmpeg binaries for near-instant audio encoding.</p>
-          </div>
-          <div className="glass-panel p-6 rounded-2xl border border-slate-800 space-y-2">
-            <div className="w-10 h-10 rounded-xl bg-fuchsia-500/10 text-fuchsia-400 flex items-center justify-center">
-              <Music2 className="w-5 h-5" />
-            </div>
-            <h4 className="font-bold text-white text-base">Up to 320kbps</h4>
-            <p className="text-xs text-slate-400">Choose 128k, 192k, 256k, or 320k for audiophile-grade output.</p>
-          </div>
-          <div className="glass-panel p-6 rounded-2xl border border-slate-800 space-y-2">
-            <div className="w-10 h-10 rounded-xl bg-emerald-500/10 text-emerald-400 flex items-center justify-center">
-              <Shield className="w-5 h-5" />
-            </div>
-            <h4 className="font-bold text-white text-base">Automatic Cleanup</h4>
-            <p className="text-xs text-slate-400">Uploads are wiped instantly and converted files purge after 24 hours.</p>
-          </div>
-        </div>
-
         {/* History */}
         <HistoryList
           items={history}
@@ -222,16 +197,16 @@ export default function Home() {
         />
       </main>
 
-      <footer className="border-t border-slate-900 bg-slate-950/80 py-8 text-center text-xs text-slate-400">
-        <div className="max-w-5xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-4">
-          <p>© {new Date().getFullYear()} AudioPulse • Powered by Node.js, Express & FFmpeg</p>
-          <div className="flex items-center space-x-4">
-            <a href="/api/backend/" target="_blank" className="hover:text-slate-200 transition-colors">API Status</a>
-            <a href="/api/backend/health" target="_blank" className="hover:text-slate-200 transition-colors">Health Check</a>
+      <footer className="border-t border-zinc-900 py-6 text-center text-[11px] text-zinc-500">
+        <div className="max-w-4xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-3">
+          <p>© {new Date().getFullYear()} Media Converter</p>
+          <div className="flex items-center space-x-3 text-zinc-500">
+            <a href="/api/backend/" target="_blank" className="hover:text-zinc-300 transition-colors">API Status</a>
+            <span>•</span>
+            <a href="/api/backend/health" target="_blank" className="hover:text-zinc-300 transition-colors">Health Check</a>
           </div>
         </div>
       </footer>
     </div>
   );
 }
-

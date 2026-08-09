@@ -137,6 +137,16 @@ const convertYoutubeToMp3 = async (url, outputPath, bitrateKbps = 320) => {
     logger.warn(`youtube-dl-exec execution note: ${ytExecErr.message}`);
   }
 
+  // Handle double .mp3 extension if yt-dlp appended it automatically
+  const doubleExtPath = `${outputPath}.mp3`;
+  if (!fs.existsSync(outputPath) && fs.existsSync(doubleExtPath)) {
+    try {
+      fs.renameSync(doubleExtPath, outputPath);
+    } catch (renameErr) {
+      logger.warn(`Could not rename double extension file: ${renameErr.message}`);
+    }
+  }
+
   // If the file was successfully created on disk, return metadata immediately!
   if (fs.existsSync(outputPath) && fs.statSync(outputPath).size > 0) {
     logger.info(`YouTube audio conversion completed via youtube-dl-exec: ${outputPath}`);
