@@ -44,6 +44,8 @@ const isValidYoutubeUrl = (url) => {
   return youtubeRegex.test(trimmed) || ytdl.validateURL(trimmed);
 };
 
+const play = require('play-dl');
+
 /**
  * Fetch video details/info from YouTube
  * @param {string} url 
@@ -78,10 +80,30 @@ const getYoutubeInfo = async (url) => {
       videoUrl: output.webpage_url || cleanUrl
     };
   } catch (ytDlErr) {
-    logger.warn(`youtube-dl-exec info failed, attempting ytdl-core fallback: ${ytDlErr.message}`);
+    logger.warn(`youtube-dl-exec info failed, attempting play-dl / ytdl-core fallback: ${ytDlErr.message}`);
   }
 
-  // 2. Fallback to ytdl-core info
+  // 2. Try play-dl info (bypasses cloud data-center IP rate-limits)
+  try {
+    const info = await play.video_info(cleanUrl);
+    const details = info.video_details;
+    const thumbnails = details.thumbnails || [];
+    const thumbnail = thumbnails.length > 0 ? thumbnails[thumbnails.length - 1].url : '';
+
+    return {
+      title: details.title || 'YouTube Audio',
+      author: details.channel?.name || 'Unknown Artist',
+      durationSeconds: details.durationInSec || 0,
+      durationFormatted: formatDuration(details.durationInSec || 0),
+      thumbnail,
+      viewCount: details.views || 0,
+      videoUrl: details.url || cleanUrl
+    };
+  } catch (playErr) {
+    logger.warn(`play-dl info error: ${playErr.message}`);
+  }
+
+  // 3. Fallback to ytdl-core info
   try {
     const info = await ytdl.getInfo(cleanUrl, { requestOptions: YTDL_REQUEST_OPTIONS });
     const details = info.videoDetails;
@@ -165,7 +187,40 @@ const convertYoutubeToMp3 = async (url, outputPath, bitrateKbps = 320) => {
   }
 
 
-  // 2. Secondary Fallback: ytdl-core stream into FFmpeg
+  // 2. Secondary Strategy: play-dl audio stream into FFmpeg (bypasses 429 & cloud IP blocks)
+  try {
+    const playStream = await play.stream(cleanUrl, { quality: 2 });
+    await new Promise((resolve, reject) => {
+      ffmpeg(playStream.stream)
+        .toFormat('mp3')
+        .audioCodec('libmp3lame')
+        .audioBitrate(targetBitrateStr)
+        .on('start', (cmd) => logger.info(`FFmpeg process started for play-dl stream: ${cmd}`))
+        .on('error', (err) => reject(err))
+        .on('end', () => resolve())
+        .save(outputPath);
+    });
+
+    if (fs.existsSync(outputPath) && fs.statSync(outputPath).size > 0) {
+      logger.info(`YouTube audio conversion completed via play-dl: ${outputPath}`);
+      try {
+        const meta = await getMediaMetadata(outputPath);
+        return meta;
+      } catch (metaErr) {
+        const stats = fs.statSync(outputPath);
+        return {
+          durationSeconds: 0,
+          durationFormatted: '00:00',
+          sizeBytes: stats.size,
+          sizeFormatted: formatBytes(stats.size)
+        };
+      }
+    }
+  } catch (playStreamErr) {
+    logger.warn(`play-dl stream conversion failed: ${playStreamErr.message}`);
+  }
+
+  // 3. Tertiary Fallback: ytdl-core stream into FFmpeg
   return new Promise(async (resolve, reject) => {
     let isHandled = false;
 
