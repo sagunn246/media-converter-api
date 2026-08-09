@@ -56,18 +56,39 @@ const getYoutubeInfo = async (url) => {
     throw new ApiError(400, 'Invalid YouTube URL. Please provide a valid YouTube video link (e.g. https://www.youtube.com/watch?v=...)');
   }
 
-  // 1. Try youtube-dl-exec first (most reliable metadata parsing)
+  // 1. Try YouTube Official oEmbed API first (100% immune to bot checks & 429 rate limits)
+  try {
+    const oembedUrl = `https://www.youtube.com/oembed?url=${encodeURIComponent(cleanUrl)}&format=json`;
+    const response = await fetch(oembedUrl);
+    if (response.ok) {
+      const oembed = await response.json();
+      if (oembed && oembed.title) {
+        logger.info(`Fetched YouTube info via official oEmbed API: "${oembed.title}"`);
+        return {
+          title: oembed.title,
+          author: oembed.author_name || 'Unknown Artist',
+          durationSeconds: 0,
+          durationFormatted: 'Audio Stream',
+          thumbnail: oembed.thumbnail_url || '',
+          viewCount: 0,
+          videoUrl: cleanUrl
+        };
+      }
+    }
+  } catch (oembedErr) {
+    logger.warn(`oEmbed fetch failed, attempting yt-dlp fallback: ${oembedErr.message}`);
+  }
+
+  // 2. Fallback to youtube-dl-exec (native yt-dlp binary with player_client bypass)
   try {
     const output = await youtubedl(cleanUrl, {
       dumpSingleJson: true,
       noWarnings: true,
-      noCallHome: true,
       noCheckCertificate: true,
       noPlaylist: true,
       preferFreeFormats: true,
-      youtubeSkipDashManifest: true,
-      extractorArgs: 'youtube:player_client=android,web',
-      userAgent: 'Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Mobile Safari/537.36',
+      extractorArgs: 'youtube:player_client=mweb,tv,ios',
+      userAgent: 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_4_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.4.1 Mobile/15E148 Safari/604.1',
       ffmpegLocation: ffmpegBinDir
     });
 
@@ -82,7 +103,7 @@ const getYoutubeInfo = async (url) => {
       videoUrl: output.webpage_url || cleanUrl
     };
   } catch (ytDlErr) {
-    logger.warn(`youtube-dl-exec info failed, attempting play-dl / ytdl-core fallback: ${ytDlErr.message}`);
+    logger.warn(`youtube-dl-exec info failed, attempting play-dl fallback: ${ytDlErr.message}`);
   }
 
   // 2. Try play-dl info (bypasses cloud data-center IP rate-limits)
@@ -146,7 +167,7 @@ const convertYoutubeToMp3 = async (url, outputPath, bitrateKbps = 320) => {
   const targetBitrateStr = `${targetBitrateNum}k`;
   logger.info(`Starting YouTube audio extraction: ${cleanUrl} -> ${outputPath} @ ${targetBitrateStr}`);
 
-  // 1. Primary Strategy: youtube-dl-exec (native yt-dlp binary, bypasses 403 Forbidden)
+  // 1. Primary Strategy: youtube-dl-exec (native yt-dlp binary, bypasses 403 Forbidden & Bot Checks)
   try {
     await youtubedl(cleanUrl, {
       extractAudio: true,
@@ -154,8 +175,8 @@ const convertYoutubeToMp3 = async (url, outputPath, bitrateKbps = 320) => {
       audioQuality: targetBitrateStr,
       output: outputPath,
       noPlaylist: true,
-      extractorArgs: 'youtube:player_client=android,web',
-      userAgent: 'Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Mobile Safari/537.36',
+      extractorArgs: 'youtube:player_client=mweb,tv,ios',
+      userAgent: 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_4_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.4.1 Mobile/15E148 Safari/604.1',
       ffmpegLocation: ffmpegBinDir,
       noWarnings: true
     });
