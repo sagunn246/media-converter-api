@@ -7,7 +7,7 @@ import DropZone from "@/components/DropZone";
 
 import YoutubeConverter from "@/components/YoutubeConverter";
 import HistoryList from "@/components/HistoryList";
-import { AlertCircle, Headphones, Check, Upload, Link2 } from "lucide-react";
+import { AlertCircle, Headphones, Upload, Link2 } from "lucide-react";
 import clsx from "clsx";
 import { ConvertedTrack, HistoryItem } from "@/types";
 
@@ -15,7 +15,7 @@ type Tab = "youtube" | "file";
 
 export default function Home() {
   const [activeTab, setActiveTab] = useState<Tab>("youtube");
-  const [activeTrack, setActiveTrack] = useState<ConvertedTrack | null>(null);
+
   const [isProcessing, setIsProcessing] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [history, setHistory] = useState<HistoryItem[]>([]);

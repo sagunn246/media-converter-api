@@ -1,3 +1,4 @@
+/* eslint-disable @next/next/no-img-element */
 "use client";
 
 import { useState } from "react";
@@ -108,7 +109,11 @@ export default function YoutubeConverter({
           filename: cleanTitle,
           bitrate: `${bitrate}k`,
         });
-      } else if (res.status === 504 || res.status === 502) {
+      } else if (
+        res.status === 504 || 
+        res.status === 502 || 
+        (res.status === 500 && result.error?.includes("Server returned error (500)"))
+      ) {
         // Next.js proxy timeout or socket hangup, conversion is likely still running in backend
         onConvertError("Conversion is taking longer than expected. It is processing in the background and will appear in history shortly.");
       } else {

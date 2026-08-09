@@ -1,6 +1,6 @@
 "use client";
 
-import { History, Download, Play, Music, Trash2 } from "lucide-react";
+import { History, Download, Music, Trash2 } from "lucide-react";
 import { HistoryItem } from "@/types";
 
 export type { HistoryItem };
