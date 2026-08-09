@@ -14,17 +14,18 @@ interface HistoryListProps {
 export default function HistoryList({ items, onSelectTrack, onClearHistory }: HistoryListProps) {
   if (items.length === 0) return null;
 
-  const getProxiedUrl = (url: string) => {
+  const getProxiedUrl = (url: string, forceDownload = false) => {
     if (!url) return "";
+    let finalUrl = url;
     if (url.startsWith("http://") || url.startsWith("https://")) {
       try {
         const parsed = new URL(url);
-        return `/api/backend${parsed.pathname}`;
+        finalUrl = `/api/backend${parsed.pathname}`;
       } catch (e) {
-        return url;
+        finalUrl = url;
       }
     }
-    return url;
+    return forceDownload ? `${finalUrl}${finalUrl.includes('?') ? '&' : '?'}download=1` : finalUrl;
   };
 
   return (
@@ -77,8 +78,8 @@ export default function HistoryList({ items, onSelectTrack, onClearHistory }: Hi
                 <Play className="w-4 h-4 fill-current" />
               </button>
               <a
-                href={getProxiedUrl(item.downloadUrl)}
-                download
+                href={getProxiedUrl(item.downloadUrl, true)}
+                download={item.filename}
                 className="p-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white transition-colors"
                 title="Download MP3"
               >

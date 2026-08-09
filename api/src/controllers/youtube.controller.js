@@ -42,6 +42,7 @@ const getVideoInfo = async (req, res, next) => {
  * Accepts a YouTube URL and bitrate, streams audio and converts to MP3
  */
 const convertYoutubeUrl = async (req, res, next) => {
+  let outputPath = null;
   try {
     const { url, bitrate = '320' } = req.body;
 
@@ -60,7 +61,7 @@ const convertYoutubeUrl = async (req, res, next) => {
 
     // Prepare output path
     const outputFilename = `${uuidv4()}.mp3`;
-    const outputPath = path.join(env.outputDir, outputFilename);
+    outputPath = path.join(env.outputDir, outputFilename);
 
     // Convert YouTube audio stream to MP3
     const conversionMeta = await ytdlService.convertYoutubeToMp3(url, outputPath, bitrate);

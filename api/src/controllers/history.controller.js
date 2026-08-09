@@ -12,8 +12,8 @@ const logger = require('../utils/logger');
  */
 const getHistory = async (req, res) => {
   try {
-    if (mongoose.connection.readyState !== 1) {
-      logger.warn('MongoDB not ready. Returning empty history array.');
+    if (mongoose.connection.readyState === 0) {
+      logger.warn('MongoDB disconnected. Returning empty history array.');
       return res.status(200).json({ success: true, data: [] });
     }
 
@@ -66,7 +66,7 @@ const saveHistoryItem = async (data) => {
   };
 
   try {
-    if (mongoose.connection.readyState === 1) {
+    if (mongoose.connection.readyState !== 0) {
       await History.deleteMany({
         $or: [{ filename: payload.filename }, { downloadUrl: payload.downloadUrl }],
       });
@@ -103,7 +103,7 @@ const addHistory = async (req, res, next) => {
  */
 const clearHistory = async (req, res) => {
   try {
-    if (mongoose.connection.readyState === 1) {
+    if (mongoose.connection.readyState !== 0) {
       await History.deleteMany({});
       logger.info('Cleared conversion history from MongoDB');
     }

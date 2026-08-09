@@ -26,11 +26,15 @@ const downloadFile = async (req, res, next) => {
       throw new ApiError(404, `Requested file '${filename}' was not found or has expired`);
     }
 
-    logger.info(`Serving file download/stream request for: ${filename}`);
+    const isDownloadParam = req.query.download === '1' || req.query.download === 'true';
+    const dispositionType = isDownloadParam ? 'attachment' : 'inline';
+
+    logger.info(`Serving file download/stream request for: ${filename} (mode: ${dispositionType})`);
 
     // Set header for audio streaming & attachment fallback
     res.setHeader('Content-Type', 'audio/mpeg');
-    res.setHeader('Content-Disposition', `inline; filename="${filename}"`);
+    res.setHeader('Content-Disposition', `${dispositionType}; filename="${encodeURIComponent(filename)}"`);
+
 
     // res.sendFile handles stream piping, HTTP Range headers (206 Partial Content), ETags & Caching natively
     return res.sendFile(filePath, (err) => {

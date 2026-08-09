@@ -133,25 +133,27 @@ const convertYoutubeToMp3 = async (url, outputPath, bitrateKbps = 320) => {
       ffmpegLocation: ffmpegBinDir,
       noWarnings: true
     });
-
-    if (fs.existsSync(outputPath) && fs.statSync(outputPath).size > 0) {
-      logger.info(`YouTube audio conversion completed via youtube-dl-exec: ${outputPath}`);
-      try {
-        const meta = await getMediaMetadata(outputPath);
-        return meta;
-      } catch (metaErr) {
-        const stats = fs.statSync(outputPath);
-        return {
-          durationSeconds: 0,
-          durationFormatted: '00:00',
-          sizeBytes: stats.size,
-          sizeFormatted: formatBytes(stats.size)
-        };
-      }
-    }
   } catch (ytExecErr) {
-    logger.warn(`youtube-dl-exec conversion failed, falling back to ytdl-core stream: ${ytExecErr.message}`);
+    logger.warn(`youtube-dl-exec execution note: ${ytExecErr.message}`);
   }
+
+  // If the file was successfully created on disk, return metadata immediately!
+  if (fs.existsSync(outputPath) && fs.statSync(outputPath).size > 0) {
+    logger.info(`YouTube audio conversion completed via youtube-dl-exec: ${outputPath}`);
+    try {
+      const meta = await getMediaMetadata(outputPath);
+      return meta;
+    } catch (metaErr) {
+      const stats = fs.statSync(outputPath);
+      return {
+        durationSeconds: 0,
+        durationFormatted: '00:00',
+        sizeBytes: stats.size,
+        sizeFormatted: formatBytes(stats.size)
+      };
+    }
+  }
+
 
   // 2. Secondary Fallback: ytdl-core stream into FFmpeg
   return new Promise(async (resolve, reject) => {

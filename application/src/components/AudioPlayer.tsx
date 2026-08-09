@@ -27,20 +27,23 @@ export default function AudioPlayer({
   const [volume, setVolume] = useState(1);
   const [isMuted, setIsMuted] = useState(false);
 
-  const getProxiedUrl = (url: string) => {
+  const getProxiedUrl = (url: string, forceDownload = false) => {
     if (!url) return "";
+    let finalUrl = url;
     if (url.startsWith("http://") || url.startsWith("https://")) {
       try {
         const parsed = new URL(url);
-        return `/api/backend${parsed.pathname}`;
+        finalUrl = `/api/backend${parsed.pathname}`;
       } catch (e) {
-        return url;
+        finalUrl = url;
       }
     }
-    return url;
+    return forceDownload ? `${finalUrl}${finalUrl.includes('?') ? '&' : '?'}download=1` : finalUrl;
   };
 
   const mediaUrl = getProxiedUrl(downloadUrl);
+  const downloadFileUrl = getProxiedUrl(downloadUrl, true);
+
 
   useEffect(() => {
     setCurrentTime(0);
@@ -158,8 +161,8 @@ export default function AudioPlayer({
         {/* Action Controls */}
         <div className="flex items-center space-x-3">
           <a
-            href={mediaUrl}
-            download
+            href={downloadFileUrl}
+            download={filename}
             className="flex-1 sm:flex-none flex items-center justify-center space-x-2 px-5 py-2.5 rounded-xl glow-gradient font-semibold text-white shadow-lg shadow-violet-600/30 hover:opacity-95 transition-all hover:scale-[1.02] active:scale-95"
           >
             <Download className="w-4 h-4" />
