@@ -22,6 +22,24 @@ try {
 }
 
 const ffmpegBinDir = path.dirname(ffmpegPath);
+const os = require('os');
+
+/**
+ * Writes YOUTUBE_COOKIES env var to a temp file for yt-dlp cookie auth.
+ * Returns the path if written, null otherwise.
+ */
+const getCookiesFilePath = () => {
+  const cookiesContent = process.env.YOUTUBE_COOKIES;
+  if (!cookiesContent || !cookiesContent.trim()) return null;
+  try {
+    const cookiesPath = path.join(os.tmpdir(), 'yt-cookies.txt');
+    fs.writeFileSync(cookiesPath, cookiesContent.trim(), 'utf8');
+    return cookiesPath;
+  } catch (err) {
+    logger.warn('Could not write YouTube cookies to temp file:', err.message);
+    return null;
+  }
+};
 
 const YTDL_REQUEST_OPTIONS = {
   headers: {
@@ -79,9 +97,10 @@ const getYoutubeInfo = async (url) => {
     logger.warn(`oEmbed fetch failed, attempting yt-dlp fallback: ${oembedErr.message}`);
   }
 
-  // 2. Fallback to youtube-dl-exec (native yt-dlp binary with player_client bypass)
+  // 2. Fallback to youtube-dl-exec (native yt-dlp binary with cookie auth + player_client bypass)
   try {
-    const output = await youtubedl(cleanUrl, {
+    const cookiesFile = getCookiesFilePath();
+    const ytdlInfoOpts = {
       dumpSingleJson: true,
       noWarnings: true,
       noCheckCertificate: true,
@@ -90,7 +109,12 @@ const getYoutubeInfo = async (url) => {
       extractorArgs: 'youtube:player_client=mweb,tv,ios',
       userAgent: 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_4_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.4.1 Mobile/15E148 Safari/604.1',
       ffmpegLocation: ffmpegBinDir
-    });
+    };
+    if (cookiesFile) {
+      ytdlInfoOpts.cookies = cookiesFile;
+      logger.info('Using YouTube cookies for yt-dlp info request');
+    }
+    const output = await youtubedl(cleanUrl, ytdlInfoOpts);
 
     const durationSec = Math.round(output.duration || 0);
     return {
@@ -167,9 +191,10 @@ const convertYoutubeToMp3 = async (url, outputPath, bitrateKbps = 320) => {
   const targetBitrateStr = `${targetBitrateNum}k`;
   logger.info(`Starting YouTube audio extraction: ${cleanUrl} -> ${outputPath} @ ${targetBitrateStr}`);
 
-  // 1. Primary Strategy: youtube-dl-exec (native yt-dlp binary, bypasses 403 Forbidden & Bot Checks)
+  // 1. Primary Strategy: youtube-dl-exec (native yt-dlp binary, with cookie auth + bot bypass)
   try {
-    await youtubedl(cleanUrl, {
+    const cookiesFile = getCookiesFilePath();
+    const convertOpts = {
       extractAudio: true,
       audioFormat: 'mp3',
       audioQuality: targetBitrateStr,
@@ -179,7 +204,12 @@ const convertYoutubeToMp3 = async (url, outputPath, bitrateKbps = 320) => {
       userAgent: 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_4_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.4.1 Mobile/15E148 Safari/604.1',
       ffmpegLocation: ffmpegBinDir,
       noWarnings: true
-    });
+    };
+    if (cookiesFile) {
+      convertOpts.cookies = cookiesFile;
+      logger.info('Using YouTube cookies for yt-dlp conversion request');
+    }
+    await youtubedl(cleanUrl, convertOpts);
   } catch (ytExecErr) {
     logger.warn(`youtube-dl-exec execution note: ${ytExecErr.message}`);
   }
