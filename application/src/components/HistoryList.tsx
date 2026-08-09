@@ -7,11 +7,10 @@ export type { HistoryItem };
 
 interface HistoryListProps {
   items: HistoryItem[];
-  onSelectTrack: (track: HistoryItem) => void;
   onClearHistory: () => void;
 }
 
-export default function HistoryList({ items, onSelectTrack, onClearHistory }: HistoryListProps) {
+export default function HistoryList({ items, onClearHistory }: HistoryListProps) {
   if (items.length === 0) return null;
 
   const getProxiedUrl = (url: string, forceDownload = false) => {
@@ -70,13 +69,6 @@ export default function HistoryList({ items, onSelectTrack, onClearHistory }: Hi
             </div>
 
             <div className="flex items-center space-x-1.5 shrink-0">
-              <button
-                onClick={() => onSelectTrack(item)}
-                className="p-1.5 rounded-md bg-zinc-800 hover:bg-indigo-600 text-zinc-400 hover:text-white transition-colors cursor-pointer"
-                title="Preview"
-              >
-                <Play className="w-3.5 h-3.5 fill-current" />
-              </button>
               <a
                 href={getProxiedUrl(item.downloadUrl, true)}
                 download={item.filename}

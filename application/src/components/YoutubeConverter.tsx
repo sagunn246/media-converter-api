@@ -108,6 +108,9 @@ export default function YoutubeConverter({
           filename: cleanTitle,
           bitrate: `${bitrate}k`,
         });
+      } else if (res.status === 504 || res.status === 502) {
+        // Next.js proxy timeout or socket hangup, conversion is likely still running in backend
+        onConvertError("Conversion is taking longer than expected. It is processing in the background and will appear in history shortly.");
       } else {
         const errorMsg = result.error || result.message || "YouTube conversion failed.";
         onConvertError(errorMsg);

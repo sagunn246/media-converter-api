@@ -110,8 +110,12 @@ export default function DropZone({ onConvertStart, onConvertSuccess, onConvertEr
           filename: cleanName,
           bitrate: `${bitrate}k`,
         });
+      } else if (response.status === 504 || response.status === 502) {
+        // Next.js proxy timeout or socket hangup, conversion is likely still running in backend
+        onConvertError("Conversion is taking longer than expected. It is processing in the background and will appear in history shortly.");
+        setSelectedFile(null);
       } else {
-        const errorMsg = result.error || result.message || "Failed to convert file.";
+        const errorMsg = result.error || result.message || "File conversion failed.";
         onConvertError(errorMsg);
       }
     } catch (err: unknown) {

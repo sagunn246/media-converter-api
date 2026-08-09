@@ -4,7 +4,7 @@
 import { useState, useEffect, useCallback } from "react";
 import Header from "@/components/Header";
 import DropZone from "@/components/DropZone";
-import AudioPlayer from "@/components/AudioPlayer";
+
 import YoutubeConverter from "@/components/YoutubeConverter";
 import HistoryList from "@/components/HistoryList";
 import { AlertCircle, Headphones, Check, Upload, Link2 } from "lucide-react";
@@ -42,8 +42,13 @@ export default function Home() {
     }
   }, []);
 
+  // Poll history every 5 seconds automatically
   useEffect(() => {
     fetchHistory();
+    const interval = setInterval(() => {
+      fetchHistory();
+    }, 5000);
+    return () => clearInterval(interval);
   }, [fetchHistory]);
 
   const clearHistory = async () => {
@@ -63,12 +68,10 @@ export default function Home() {
   const handleConvertStart = () => {
     setIsProcessing(true);
     setErrorMessage(null);
-    setActiveTrack(null);
   };
 
-  const handleConvertSuccess = (data: ConvertedTrack) => {
+  const handleConvertSuccess = () => {
     setIsProcessing(false);
-    setActiveTrack(data);
     fetchHistory();
   };
 
@@ -93,14 +96,22 @@ export default function Home() {
           </p>
         </div>
 
-        {/* Error Alert */}
+        {/* Error Alert / Info Alert */}
         {errorMessage && (
-          <div className="bg-rose-500/10 border border-rose-500/20 p-3 rounded-lg flex items-center justify-between text-rose-300 text-xs">
+          <div className={clsx("border p-3 rounded-lg flex items-center justify-between text-xs", 
+            errorMessage.includes("background") || errorMessage.includes("longer than expected") 
+              ? "bg-blue-500/10 border-blue-500/20 text-blue-300" 
+              : "bg-rose-500/10 border-rose-500/20 text-rose-300"
+          )}>
             <div className="flex items-center space-x-2">
-              <AlertCircle className="w-4 h-4 text-rose-400 shrink-0" />
+              <AlertCircle className={clsx("w-4 h-4 shrink-0", 
+                errorMessage.includes("background") || errorMessage.includes("longer than expected") 
+                  ? "text-blue-400" 
+                  : "text-rose-400"
+              )} />
               <span>{errorMessage}</span>
             </div>
-            <button onClick={() => setErrorMessage(null)} className="text-xs text-rose-400 hover:underline font-medium cursor-pointer">
+            <button onClick={() => setErrorMessage(null)} className="text-xs hover:underline font-medium cursor-pointer opacity-80 hover:opacity-100">
               Dismiss
             </button>
           </div>
@@ -121,24 +132,6 @@ export default function Home() {
             <div className="w-full max-w-xs mx-auto h-1.5 bg-zinc-800 rounded-full overflow-hidden">
               <div className="h-full bg-indigo-500 w-3/4 animate-pulse rounded-full" />
             </div>
-          </div>
-        )}
-
-        {/* Audio Player Result */}
-        {activeTrack && !isProcessing && (
-          <div className="space-y-2">
-            <div className="flex items-center space-x-1.5 text-[11px] font-medium text-emerald-400 uppercase tracking-wider">
-              <Check className="w-3.5 h-3.5" />
-              <span>Conversion Ready</span>
-            </div>
-            <AudioPlayer
-              filename={activeTrack.filename}
-              downloadUrl={activeTrack.downloadUrl}
-              duration={activeTrack.duration}
-              durationSeconds={activeTrack.durationSeconds}
-              size={activeTrack.size}
-              bitrate={activeTrack.bitrate}
-            />
           </div>
         )}
 
@@ -193,7 +186,6 @@ export default function Home() {
         {/* History */}
         <HistoryList
           items={history}
-          onSelectTrack={(track) => setActiveTrack(track)}
           onClearHistory={clearHistory}
         />
       </main>
